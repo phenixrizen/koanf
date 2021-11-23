@@ -1,12 +1,12 @@
-package posflag_test
+package posflag
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/providers/confmap"
-	"github.com/knadh/koanf/providers/posflag"
+	"github.com/phenixrizen/koanf"
+	"github.com/phenixrizen/koanf/providers/confmap"
+	"github.com/phenixrizen/koanf/providers/posflag"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 )

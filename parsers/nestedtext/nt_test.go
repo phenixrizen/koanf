@@ -1,9 +1,7 @@
-package nestedtext_test
+package nestedtext
 
 import (
 	"testing"
-
-	"github.com/knadh/koanf/parsers/nestedtext"
 )
 
 func TestParser(t *testing.T) {
@@ -15,7 +13,7 @@ func TestParser(t *testing.T) {
 timeout: 20
 `
 	// Test decoder
-	nt := nestedtext.Parser()
+	nt := Parser()
 	c, err := nt.Unmarshal([]byte(ntsource))
 	if err != nil {
 		t.Fatal("Unmarshal of NestedText input failed")

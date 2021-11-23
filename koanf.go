@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/knadh/koanf/maps"
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
+	"github.com/phenixrizen/koanf/maps"
 )
 
 // Koanf is the configuration apparatus.

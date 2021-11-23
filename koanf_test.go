@@ -1,4 +1,4 @@
-package koanf_test
+package koanf
 
 import (
 	encjson "encoding/json"
@@ -14,18 +14,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/dotenv"
-	"github.com/knadh/koanf/parsers/hcl"
-	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/parsers/toml"
-	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/basicflag"
-	"github.com/knadh/koanf/providers/confmap"
-	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/providers/posflag"
-	"github.com/knadh/koanf/providers/rawbytes"
+	"github.com/phenixrizen/koanf/parsers/dotenv"
+	"github.com/phenixrizen/koanf/parsers/hcl"
+	"github.com/phenixrizen/koanf/parsers/json"
+	"github.com/phenixrizen/koanf/parsers/toml"
+	"github.com/phenixrizen/koanf/parsers/yaml"
+	"github.com/phenixrizen/koanf/providers/basicflag"
+	"github.com/phenixrizen/koanf/providers/confmap"
+	"github.com/phenixrizen/koanf/providers/env"
+	"github.com/phenixrizen/koanf/providers/file"
+	"github.com/phenixrizen/koanf/providers/posflag"
+	"github.com/phenixrizen/koanf/providers/rawbytes"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -243,53 +242,53 @@ type testStructFlat struct {
 }
 
 type Case struct {
-	koanf    *koanf.Koanf
+	koanf    *Koanf
 	file     string
-	parser   koanf.Parser
+	parser   Parser
 	typeName string
 }
 
 // 'Flat' Case instances to be used in multiple tests. These will not be
 // mutated.
 var flatCases = []Case{
-	{koanf: koanf.New(delim), file: mockDotEnv, parser: dotenv.Parser(), typeName: "dotenv"},
+	{koanf: New(delim), file: mockDotEnv, parser: dotenv.Parser(), typeName: "dotenv"},
 }
 
 // Case instances to be used in multiple tests. These will not be mutated.
 var cases = []Case{
-	{koanf: koanf.New(delim), file: mockJSON, parser: json.Parser(), typeName: "json"},
-	{koanf: koanf.New(delim), file: mockYAML, parser: yaml.Parser(), typeName: "yml"},
-	{koanf: koanf.New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
-	{koanf: koanf.New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
+	{koanf: New(delim), file: mockJSON, parser: json.Parser(), typeName: "json"},
+	{koanf: New(delim), file: mockYAML, parser: yaml.Parser(), typeName: "yml"},
+	{koanf: New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
+	{koanf: New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
 }
 
 func init() {
 	// Preload 4 Koanf instances with their providers and config.
-	if err := cases[0].koanf.Load(file.Provider(cases[0].file), json.Parser()); err != nil {
+	if err := cases[0].Load(file.Provider(cases[0].file), json.Parser()); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
-	if err := cases[1].koanf.Load(file.Provider(cases[1].file), yaml.Parser()); err != nil {
+	if err := cases[1].Load(file.Provider(cases[1].file), yaml.Parser()); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
-	if err := cases[2].koanf.Load(file.Provider(cases[2].file), toml.Parser()); err != nil {
+	if err := cases[2].Load(file.Provider(cases[2].file), toml.Parser()); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
-	if err := cases[3].koanf.Load(file.Provider(cases[3].file), hcl.Parser(true)); err != nil {
+	if err := cases[3].Load(file.Provider(cases[3].file), hcl.Parser(true)); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
 
 	// Preload 1 'flat' Koanf instances with their providers and config.
-	if err := flatCases[0].koanf.Load(file.Provider(flatCases[0].file), dotenv.Parser()); err != nil {
+	if err := flatCases[0].Load(file.Provider(flatCases[0].file), dotenv.Parser()); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
 }
 
 func BenchmarkLoadFile(b *testing.B) {
-	k := koanf.New(delim)
+	k := New(delim)
 
 	// Don't use TOML here because it distorts memory benchmarks due to high memory use
 	providers := []*file.File{file.Provider(mockJSON), file.Provider(mockYAML)}
-	parsers := []koanf.Parser{json.Parser(), yaml.Parser()}
+	parsers := []Parser{json.Parser(), yaml.Parser()}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -314,14 +313,14 @@ func TestLoadFlatFileAllKeys(t *testing.T) {
 	re, _ := regexp.Compile("(.+?)?type \\-> (.*)\n")
 	for _, c := range flatCases {
 		// Check against testKeys.
-		assert.Equal(flatTestKeys, c.koanf.Keys(), fmt.Sprintf("loaded keys mismatch: %v", c.typeName))
+		assert.Equal(flatTestKeys, c.Keys(), fmt.Sprintf("loaded keys mismatch: %v", c.typeName))
 
 		// Check against keyMap.
-		assert.EqualValues(flatTestKeyMap, c.koanf.KeyMap(), "keymap doesn't match")
+		assert.EqualValues(flatTestKeyMap, c.KeyMap(), "keymap doesn't match")
 
 		// Replace the "type" fields that varies across different files
 		// to do a complete key -> value map match with testAll.
-		s := strings.TrimSpace(re.ReplaceAllString(c.koanf.Sprint(), ""))
+		s := strings.TrimSpace(re.ReplaceAllString(c.Sprint(), ""))
 		assert.Equal(flatTestAll, s, fmt.Sprintf("key -> value list mismatch: %v", c.typeName))
 	}
 }
@@ -331,30 +330,30 @@ func TestLoadFileAllKeys(t *testing.T) {
 	re, _ := regexp.Compile("(.+?)?type \\-> (.*)\n")
 	for _, c := range cases {
 		// Check against testKeys.
-		assert.Equal(testKeys, c.koanf.Keys(), fmt.Sprintf("loaded keys mismatch: %v", c.typeName))
+		assert.Equal(testKeys, c.Keys(), fmt.Sprintf("loaded keys mismatch: %v", c.typeName))
 
 		// Check against keyMap.
-		assert.EqualValues(testKeyMap, c.koanf.KeyMap(), "keymap doesn't match")
+		assert.EqualValues(testKeyMap, c.KeyMap(), "keymap doesn't match")
 
 		// Replace the "type" fields that varies across different files
 		// to do a complete key -> value map match with testAll.
-		s := strings.TrimSpace(re.ReplaceAllString(c.koanf.Sprint(), ""))
+		s := strings.TrimSpace(re.ReplaceAllString(c.Sprint(), ""))
 		assert.Equal(testAll, s, fmt.Sprintf("key -> value list mismatch: %v", c.typeName))
 	}
 }
 
 func TestDelim(t *testing.T) {
-	k1 := koanf.New(".")
+	k1 := New(".")
 	assert.Equal(t, k1.Delim(), ".")
 
-	k2 := koanf.New("/")
+	k2 := New("/")
 	assert.Equal(t, k2.Delim(), "/")
 }
 
 func TestLoadMergeYamlJson(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 
 	assert.NoError(k.Load(file.Provider(mockYAML), yaml.Parser()),
@@ -380,7 +379,7 @@ func TestLoadMergeYamlJson(t *testing.T) {
 func TestLoadMergeJsonYaml(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 
 	assert.NoError(k.Load(file.Provider(mockJSON), yaml.Parser()),
@@ -406,7 +405,7 @@ func TestLoadMergeJsonYaml(t *testing.T) {
 func TestWatchFile(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 
 	// Create a tmp config file.
@@ -452,7 +451,7 @@ func TestWatchFile(t *testing.T) {
 func TestWatchFileSymlink(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 	tmpDir, _ := ioutil.TempDir("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
 
@@ -510,7 +509,7 @@ func TestLoadMerge(t *testing.T) {
 	var (
 		assert = assert.New(t)
 		// Load several types into a fresh Koanf instance.
-		k = koanf.New(delim)
+		k = New(delim)
 	)
 	for _, c := range cases {
 		assert.Nil(k.Load(file.Provider(c.file), c.parser),
@@ -560,7 +559,7 @@ func TestLoadMerge(t *testing.T) {
 func TestFlags(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	k2 := k.Copy()
@@ -623,7 +622,7 @@ func TestFlags(t *testing.T) {
 func TestConfMapValues(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	var (
@@ -632,7 +631,7 @@ func TestConfMapValues(t *testing.T) {
 		r1  = k.Cut("parent2").Raw()
 	)
 
-	k = koanf.New(delim)
+	k = New(delim)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	var (
 		c2  = k.All()
@@ -649,7 +648,7 @@ func TestCutCopy(t *testing.T) {
 	// Instance 1.
 	var (
 		assert = assert.New(t)
-		k1     = koanf.New(delim)
+		k1     = New(delim)
 	)
 	assert.Nil(k1.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
@@ -660,7 +659,7 @@ func TestCutCopy(t *testing.T) {
 	)
 
 	// Instance 2.
-	k2 := koanf.New(delim)
+	k2 := New(delim)
 	assert.Nil(k2.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
 	var (
@@ -684,7 +683,7 @@ func TestCutCopy(t *testing.T) {
 func TestMerge(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
@@ -698,7 +697,7 @@ func TestMerge(t *testing.T) {
 	assert.NotEqual(cut1.Sprint(), cut2.Sprint(), "different cuts incorrectly match")
 
 	// Create an empty Koanf instance.
-	k2 := koanf.New(delim)
+	k2 := New(delim)
 
 	// Merge cut1 into it and check if they match.
 	k2.Merge(cut1)
@@ -708,7 +707,7 @@ func TestMerge(t *testing.T) {
 func TestRaw_YamlTypes(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 
 	assert.Nil(k.Load(file.Provider(mockYAML), yaml.Parser()),
@@ -731,7 +730,7 @@ func TestRaw_YamlTypes(t *testing.T) {
 func TestRaw_JsonTypes(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
@@ -756,7 +755,7 @@ func TestMergeStrictError(t *testing.T) {
 		assert = assert.New(t)
 	)
 
-	ks := koanf.NewWithConf(koanf.Conf{
+	ks := NewWithConf(Conf{
 		Delim:       delim,
 		StrictMerge: true,
 	})
@@ -779,7 +778,7 @@ func TestMergeStrictError(t *testing.T) {
 func TestMergeAt(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = New(delim)
 	)
 	assert.Nil(k.Load(file.Provider(mockYAML), yaml.Parser()),
 		"error loading file")
@@ -794,7 +793,7 @@ func TestMergeAt(t *testing.T) {
 	)
 
 	// Get nested test data to merge at path
-	child2 := koanf.New(delim)
+	child2 := New(delim)
 	assert.Nil(child2.Load(confmap.Provider(map[string]interface{}{
 		"name":  k.String("parent2.child2.name"),
 		"empty": k.Get("parent2.child2.empty"),
@@ -802,7 +801,7 @@ func TestMergeAt(t *testing.T) {
 	grandChild := k.Cut("parent2.child2.grandchild2")
 
 	// Create test koanf
-	ordered := koanf.New(delim)
+	ordered := New(delim)
 	assert.Nil(ordered.Load(confmap.Provider(rootData, delim), nil))
 
 	// Merge at path in order, first child2, then child2.grandchild2
@@ -811,7 +810,7 @@ func TestMergeAt(t *testing.T) {
 	assert.Equal(expected.Get(""), ordered.Get(""), "conf map mismatch")
 
 	// Create test koanf
-	reversed := koanf.New(delim)
+	reversed := New(delim)
 	assert.Nil(reversed.Load(confmap.Provider(rootData, delim), nil))
 
 	// Merge at path in reverse order, first child2.grandchild2, then child2
@@ -845,7 +844,7 @@ func TestUnmarshal(t *testing.T) {
 	// Unmarshal and check all parsers.
 	for _, c := range cases {
 		var (
-			k  = koanf.New(delim)
+			k  = New(delim)
 			ts testStruct
 		)
 		assert.Nil(k.Load(file.Provider(c.file), c.parser),
@@ -857,7 +856,7 @@ func TestUnmarshal(t *testing.T) {
 
 		// Unmarshal with config.
 		ts = testStruct{}
-		assert.Nil(k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
+		assert.Nil(k.UnmarshalWithConf("", &ts, UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
 		assert.Equal(real, ts, "unmarshalled structs don't match")
@@ -882,11 +881,11 @@ func TestUnmarshalFlat(t *testing.T) {
 
 	// Unmarshal and check all parsers.
 	for _, c := range cases {
-		k := koanf.New(delim)
+		k := New(delim)
 		assert.Nil(k.Load(file.Provider(c.file), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 		ts := testStructFlat{}
-		assert.Nil(k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true}), "unmarshal failed")
+		assert.Nil(k.UnmarshalWithConf("", &ts, UnmarshalConf{Tag: "koanf", FlatPaths: true}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1Child1Type = c.typeName
 		assert.Equal(real, ts, "unmarshalled structs don't match")
@@ -903,7 +902,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		// Load config.
-		k := koanf.New(delim)
+		k := New(delim)
 		assert.NoError(k.Load(file.Provider(c.file), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 
@@ -912,14 +911,14 @@ func TestMarshal(t *testing.T) {
 		assert.NoError(err, "error marshalling")
 
 		// Reload raw serialize bytes into a new koanf instance.
-		k = koanf.New(delim)
+		k = New(delim)
 		assert.NoError(k.Load(rawbytes.Provider(b), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 
 		// Check if values are intact.
-		assert.Equal(float64(1234), c.koanf.MustFloat64("parent1.id"))
-		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.MustStrings("orphan"))
-		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
+		assert.Equal(float64(1234), c.MustFloat64("parent1.id"))
+		assert.Equal([]string{"red", "blue", "orange"}, c.MustStrings("orphan"))
+		assert.Equal([]int64{1, 2, 3}, c.MustInt64s("parent1.child1.grandchild1.ids"))
 	}
 }
 
@@ -947,9 +946,9 @@ func TestGetExists(t *testing.T) {
 		{"parent2.child2.grandchild2.on", true},
 	}
 	for _, c := range exCases {
-		assert.Equal(c.exists, cases[0].koanf.Exists(c.path),
+		assert.Equal(c.exists, cases[0].Exists(c.path),
 			fmt.Sprintf("path resolution failed: %s", c.path))
-		assert.Equal(c.exists, cases[0].koanf.Get(c.path) != nil,
+		assert.Equal(c.exists, cases[0].Get(c.path) != nil,
 			fmt.Sprintf("path resolution failed: %s", c.path))
 	}
 }
@@ -967,7 +966,7 @@ func TestSlices(t *testing.T) {
 		"another": "123"
 	}`), &mp)
 	assert.NoError(err, "error marshalling test payload")
-	k := koanf.New(delim)
+	k := New(delim)
 	assert.NoError(k.Load(confmap.Provider(mp, "."), nil))
 
 	assert.Empty(k.Slices("x"))
@@ -987,88 +986,88 @@ func TestSlices(t *testing.T) {
 func TestGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
-		assert.Equal(nil, c.koanf.Get("xxx"))
-		assert.Equal(make(map[string]interface{}), c.koanf.Get("empty"))
+		assert.Equal(nil, c.Get("xxx"))
+		assert.Equal(make(map[string]interface{}), c.Get("empty"))
 
 		// Int.
-		assert.Equal(int64(0), c.koanf.Int64("xxxx"))
-		assert.Equal(int64(1234), c.koanf.Int64("parent1.id"))
+		assert.Equal(int64(0), c.Int64("xxxx"))
+		assert.Equal(int64(1234), c.Int64("parent1.id"))
 
-		assert.Equal(int(0), c.koanf.Int("xxxx"))
-		assert.Equal(int(1234), c.koanf.Int("parent1.id"))
+		assert.Equal(int(0), c.Int("xxxx"))
+		assert.Equal(int(1234), c.Int("parent1.id"))
 
-		assert.Equal([]int64{}, c.koanf.Int64s("xxxx"))
-		assert.Equal([]int64{1, 2, 3}, c.koanf.Int64s("parent1.child1.grandchild1.ids"))
+		assert.Equal([]int64{}, c.Int64s("xxxx"))
+		assert.Equal([]int64{1, 2, 3}, c.Int64s("parent1.child1.grandchild1.ids"))
 
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Int64Map("parent1.intmap"))
-		assert.Equal(map[string]int64{}, c.koanf.Int64Map("parent1.boolmap"))
-		assert.Equal(map[string]int64{}, c.koanf.Int64Map("xxxx"))
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Int64Map("parent1.floatmap"))
+		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.Int64Map("parent1.intmap"))
+		assert.Equal(map[string]int64{}, c.Int64Map("parent1.boolmap"))
+		assert.Equal(map[string]int64{}, c.Int64Map("xxxx"))
+		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.Int64Map("parent1.floatmap"))
 
-		assert.Equal([]int{1, 2, 3}, c.koanf.Ints("parent1.child1.grandchild1.ids"))
-		assert.Equal([]int{}, c.koanf.Ints("xxxx"))
+		assert.Equal([]int{1, 2, 3}, c.Ints("parent1.child1.grandchild1.ids"))
+		assert.Equal([]int{}, c.Ints("xxxx"))
 
-		assert.Equal(map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.koanf.IntMap("parent1.intmap"))
-		assert.Equal(map[string]int{}, c.koanf.IntMap("parent1.boolmap"))
-		assert.Equal(map[string]int{}, c.koanf.IntMap("xxxx"))
+		assert.Equal(map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.IntMap("parent1.intmap"))
+		assert.Equal(map[string]int{}, c.IntMap("parent1.boolmap"))
+		assert.Equal(map[string]int{}, c.IntMap("xxxx"))
 
 		// Float.
-		assert.Equal(float64(0), c.koanf.Float64("xxx"))
-		assert.Equal(float64(1234), c.koanf.Float64("parent1.id"))
+		assert.Equal(float64(0), c.Float64("xxx"))
+		assert.Equal(float64(1234), c.Float64("parent1.id"))
 
-		assert.Equal([]float64{}, c.koanf.Float64s("xxxx"))
-		assert.Equal([]float64{1, 2, 3}, c.koanf.Float64s("parent1.child1.grandchild1.ids"))
+		assert.Equal([]float64{}, c.Float64s("xxxx"))
+		assert.Equal([]float64{1, 2, 3}, c.Float64s("parent1.child1.grandchild1.ids"))
 
-		assert.Equal(map[string]float64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Float64Map("parent1.intmap"))
-		assert.Equal(map[string]float64{"key1": 1.1, "key2": 1.2, "key3": 1.3}, c.koanf.Float64Map("parent1.floatmap"))
-		assert.Equal(map[string]float64{}, c.koanf.Float64Map("parent1.boolmap"))
-		assert.Equal(map[string]float64{}, c.koanf.Float64Map("xxxx"))
+		assert.Equal(map[string]float64{"key1": 1, "key2": 1, "key3": 1}, c.Float64Map("parent1.intmap"))
+		assert.Equal(map[string]float64{"key1": 1.1, "key2": 1.2, "key3": 1.3}, c.Float64Map("parent1.floatmap"))
+		assert.Equal(map[string]float64{}, c.Float64Map("parent1.boolmap"))
+		assert.Equal(map[string]float64{}, c.Float64Map("xxxx"))
 
 		// String and bytes.
-		assert.Equal([]byte{}, c.koanf.Bytes("xxxx"))
-		assert.Equal([]byte("parent1"), c.koanf.Bytes("parent1.name"))
+		assert.Equal([]byte{}, c.Bytes("xxxx"))
+		assert.Equal([]byte("parent1"), c.Bytes("parent1.name"))
 
-		assert.Equal("", c.koanf.String("xxxx"))
-		assert.Equal("parent1", c.koanf.String("parent1.name"))
+		assert.Equal("", c.String("xxxx"))
+		assert.Equal("parent1", c.String("parent1.name"))
 
-		assert.Equal([]string{}, c.koanf.Strings("xxxx"))
-		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.Strings("orphan"))
+		assert.Equal([]string{}, c.Strings("xxxx"))
+		assert.Equal([]string{"red", "blue", "orange"}, c.Strings("orphan"))
 
-		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.koanf.StringMap("parent1.strmap"))
-		assert.Equal(map[string][]string{"key1": {"val1", "val2", "val3"}, "key2": {"val4", "val5"}}, c.koanf.StringsMap("parent1.strsmap"))
-		assert.Equal(map[string]string{}, c.koanf.StringMap("xxxx"))
-		assert.Equal(map[string]string{}, c.koanf.StringMap("parent1.intmap"))
+		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.StringMap("parent1.strmap"))
+		assert.Equal(map[string][]string{"key1": {"val1", "val2", "val3"}, "key2": {"val4", "val5"}}, c.StringsMap("parent1.strsmap"))
+		assert.Equal(map[string]string{}, c.StringMap("xxxx"))
+		assert.Equal(map[string]string{}, c.StringMap("parent1.intmap"))
 
 		// Bools.
-		assert.Equal(false, c.koanf.Bool("xxxx"))
-		assert.Equal(false, c.koanf.Bool("type"))
-		assert.Equal(true, c.koanf.Bool("parent1.child1.grandchild1.on"))
-		assert.Equal(true, c.koanf.Bool("strbool"))
+		assert.Equal(false, c.Bool("xxxx"))
+		assert.Equal(false, c.Bool("type"))
+		assert.Equal(true, c.Bool("parent1.child1.grandchild1.on"))
+		assert.Equal(true, c.Bool("strbool"))
 
-		assert.Equal([]bool{}, c.koanf.Bools("xxxx"))
-		assert.Equal([]bool{true, false, true}, c.koanf.Bools("bools"))
-		assert.Equal([]bool{true, false, true}, c.koanf.Bools("intbools"))
-		assert.Equal([]bool{true, true, false}, c.koanf.Bools("strbools"))
+		assert.Equal([]bool{}, c.Bools("xxxx"))
+		assert.Equal([]bool{true, false, true}, c.Bools("bools"))
+		assert.Equal([]bool{true, false, true}, c.Bools("intbools"))
+		assert.Equal([]bool{true, true, false}, c.Bools("strbools"))
 
-		assert.Equal(map[string]bool{"ok1": true, "ok2": true, "notok3": false}, c.koanf.BoolMap("parent1.boolmap"))
-		assert.Equal(map[string]bool{"key1": true, "key2": true, "key3": true}, c.koanf.BoolMap("parent1.intmap"))
-		assert.Equal(map[string]bool{}, c.koanf.BoolMap("xxxx"))
+		assert.Equal(map[string]bool{"ok1": true, "ok2": true, "notok3": false}, c.BoolMap("parent1.boolmap"))
+		assert.Equal(map[string]bool{"key1": true, "key2": true, "key3": true}, c.BoolMap("parent1.intmap"))
+		assert.Equal(map[string]bool{}, c.BoolMap("xxxx"))
 
 		// Others.
-		assert.Equal(time.Duration(1234), c.koanf.Duration("parent1.id"))
-		assert.Equal(time.Duration(0), c.koanf.Duration("xxxx"))
-		assert.Equal(time.Second*3, c.koanf.Duration("duration"))
+		assert.Equal(time.Duration(1234), c.Duration("parent1.id"))
+		assert.Equal(time.Duration(0), c.Duration("xxxx"))
+		assert.Equal(time.Second*3, c.Duration("duration"))
 
-		assert.Equal(time.Time{}, c.koanf.Time("xxxx", "2006-01-02"))
-		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.Time("time", "2006-01-02"))
+		assert.Equal(time.Time{}, c.Time("xxxx", "2006-01-02"))
+		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.Time("time", "2006-01-02"))
 
-		assert.Equal([]string{}, c.koanf.MapKeys("xxxx"), "map keys mismatch")
+		assert.Equal([]string{}, c.MapKeys("xxxx"), "map keys mismatch")
 		assert.Equal([]string{"bools", "duration", "empty", "intbools", "negative_int", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
-			c.koanf.MapKeys(""), "map keys mismatch")
-		assert.Equal([]string{"key1", "key2", "key3"}, c.koanf.MapKeys("parent1.strmap"), "map keys mismatch")
+			c.MapKeys(""), "map keys mismatch")
+		assert.Equal([]string{"key1", "key2", "key3"}, c.MapKeys("parent1.strmap"), "map keys mismatch")
 
 		// Attempt to parse int=1234 as a Unix timestamp.
-		assert.Equal(time.Date(1970, 1, 1, 0, 20, 34, 0, time.UTC), c.koanf.Time("parent1.id", "").UTC())
+		assert.Equal(time.Date(1970, 1, 1, 0, 20, 34, 0, time.UTC), c.Time("parent1.id", "").UTC())
 	}
 }
 
@@ -1076,92 +1075,92 @@ func TestMustGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
 		// Int.
-		assert.Panics(func() { c.koanf.MustInt64("xxxx") })
-		assert.Equal(int64(1234), c.koanf.MustInt64("parent1.id"))
-		assert.Equal(int64(-1234), c.koanf.MustInt64("negative_int"))
+		assert.Panics(func() { c.MustInt64("xxxx") })
+		assert.Equal(int64(1234), c.MustInt64("parent1.id"))
+		assert.Equal(int64(-1234), c.MustInt64("negative_int"))
 
-		assert.Panics(func() { c.koanf.MustInt("xxxx") })
-		assert.Equal(int(1234), c.koanf.MustInt("parent1.id"))
-		assert.Equal(int(-1234), c.koanf.MustInt("negative_int"))
+		assert.Panics(func() { c.MustInt("xxxx") })
+		assert.Equal(int(1234), c.MustInt("parent1.id"))
+		assert.Equal(int(-1234), c.MustInt("negative_int"))
 
-		assert.Panics(func() { c.koanf.MustInt64s("xxxx") })
-		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
+		assert.Panics(func() { c.MustInt64s("xxxx") })
+		assert.Equal([]int64{1, 2, 3}, c.MustInt64s("parent1.child1.grandchild1.ids"))
 
-		assert.Panics(func() { c.koanf.MustInt64Map("xxxx") })
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustInt64Map("parent1.intmap"))
+		assert.Panics(func() { c.MustInt64Map("xxxx") })
+		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.MustInt64Map("parent1.intmap"))
 
-		assert.Panics(func() { c.koanf.MustInt64Map("parent1.boolmap") })
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustInt64Map("parent1.floatmap"))
+		assert.Panics(func() { c.MustInt64Map("parent1.boolmap") })
+		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.MustInt64Map("parent1.floatmap"))
 
-		assert.Panics(func() { c.koanf.MustInts("xxxx") })
-		assert.Equal([]int{1, 2, 3}, c.koanf.MustInts("parent1.child1.grandchild1.ids"))
+		assert.Panics(func() { c.MustInts("xxxx") })
+		assert.Equal([]int{1, 2, 3}, c.MustInts("parent1.child1.grandchild1.ids"))
 
-		assert.Panics(func() { c.koanf.MustIntMap("xxxx") })
-		assert.Panics(func() { c.koanf.MustIntMap("parent1.boolmap") })
-		assert.Equal(map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustIntMap("parent1.intmap"))
+		assert.Panics(func() { c.MustIntMap("xxxx") })
+		assert.Panics(func() { c.MustIntMap("parent1.boolmap") })
+		assert.Equal(map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.MustIntMap("parent1.intmap"))
 
 		// Float.
-		assert.Panics(func() { c.koanf.MustInts("xxxx") })
-		assert.Equal(float64(1234), c.koanf.MustFloat64("parent1.id"))
+		assert.Panics(func() { c.MustInts("xxxx") })
+		assert.Equal(float64(1234), c.MustFloat64("parent1.id"))
 
-		assert.Panics(func() { c.koanf.MustFloat64s("xxxx") })
-		assert.Equal([]float64{1, 2, 3}, c.koanf.MustFloat64s("parent1.child1.grandchild1.ids"))
+		assert.Panics(func() { c.MustFloat64s("xxxx") })
+		assert.Equal([]float64{1, 2, 3}, c.MustFloat64s("parent1.child1.grandchild1.ids"))
 
-		assert.Panics(func() { c.koanf.MustFloat64Map("xxxx") })
-		assert.Panics(func() { c.koanf.MustFloat64Map("parent1.boolmap") })
-		assert.Equal(map[string]float64{"key1": 1.1, "key2": 1.2, "key3": 1.3}, c.koanf.MustFloat64Map("parent1.floatmap"))
-		assert.Equal(map[string]float64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustFloat64Map("parent1.intmap"))
+		assert.Panics(func() { c.MustFloat64Map("xxxx") })
+		assert.Panics(func() { c.MustFloat64Map("parent1.boolmap") })
+		assert.Equal(map[string]float64{"key1": 1.1, "key2": 1.2, "key3": 1.3}, c.MustFloat64Map("parent1.floatmap"))
+		assert.Equal(map[string]float64{"key1": 1, "key2": 1, "key3": 1}, c.MustFloat64Map("parent1.intmap"))
 
 		// String and bytes.
-		assert.Panics(func() { c.koanf.MustBytes("xxxx") })
-		assert.Equal([]byte("parent1"), c.koanf.MustBytes("parent1.name"))
+		assert.Panics(func() { c.MustBytes("xxxx") })
+		assert.Equal([]byte("parent1"), c.MustBytes("parent1.name"))
 
-		assert.Panics(func() { c.koanf.MustString("xxxx") })
-		assert.Equal("parent1", c.koanf.MustString("parent1.name"))
+		assert.Panics(func() { c.MustString("xxxx") })
+		assert.Equal("parent1", c.MustString("parent1.name"))
 
-		assert.Panics(func() { c.koanf.MustStrings("xxxx") })
-		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.MustStrings("orphan"))
+		assert.Panics(func() { c.MustStrings("xxxx") })
+		assert.Equal([]string{"red", "blue", "orange"}, c.MustStrings("orphan"))
 
-		assert.Panics(func() { c.koanf.MustStringMap("xxxx") })
-		assert.Panics(func() { c.koanf.MustStringMap("parent1.intmap") })
-		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.koanf.MustStringMap("parent1.strmap"))
-		assert.Equal(map[string][]string{"key1": {"val1", "val2", "val3"}, "key2": {"val4", "val5"}}, c.koanf.MustStringsMap("parent1.strsmap"))
+		assert.Panics(func() { c.MustStringMap("xxxx") })
+		assert.Panics(func() { c.MustStringMap("parent1.intmap") })
+		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.MustStringMap("parent1.strmap"))
+		assert.Equal(map[string][]string{"key1": {"val1", "val2", "val3"}, "key2": {"val4", "val5"}}, c.MustStringsMap("parent1.strsmap"))
 
 		// // Bools.
-		assert.Panics(func() { c.koanf.MustBools("xxxx") })
-		assert.Equal([]bool{true, false, true}, c.koanf.MustBools("bools"))
-		assert.Equal([]bool{true, false, true}, c.koanf.MustBools("intbools"))
-		assert.Equal([]bool{true, true, false}, c.koanf.MustBools("strbools"))
+		assert.Panics(func() { c.MustBools("xxxx") })
+		assert.Equal([]bool{true, false, true}, c.MustBools("bools"))
+		assert.Equal([]bool{true, false, true}, c.MustBools("intbools"))
+		assert.Equal([]bool{true, true, false}, c.MustBools("strbools"))
 
-		assert.Panics(func() { c.koanf.MustBoolMap("xxxx") })
-		assert.Equal(map[string]bool{"ok1": true, "ok2": true, "notok3": false}, c.koanf.MustBoolMap("parent1.boolmap"))
-		assert.Equal(map[string]bool{"key1": true, "key2": true, "key3": true}, c.koanf.MustBoolMap("parent1.intmap"))
+		assert.Panics(func() { c.MustBoolMap("xxxx") })
+		assert.Equal(map[string]bool{"ok1": true, "ok2": true, "notok3": false}, c.MustBoolMap("parent1.boolmap"))
+		assert.Equal(map[string]bool{"key1": true, "key2": true, "key3": true}, c.MustBoolMap("parent1.intmap"))
 
 		// Others.
-		assert.Panics(func() { c.koanf.MustDuration("xxxx") })
-		assert.Equal(time.Duration(1234), c.koanf.MustDuration("parent1.id"))
-		assert.Equal(time.Second*3, c.koanf.MustDuration("duration"))
-		assert.Equal(time.Duration(-1234), c.koanf.MustDuration("negative_int"))
+		assert.Panics(func() { c.MustDuration("xxxx") })
+		assert.Equal(time.Duration(1234), c.MustDuration("parent1.id"))
+		assert.Equal(time.Second*3, c.MustDuration("duration"))
+		assert.Equal(time.Duration(-1234), c.MustDuration("negative_int"))
 
-		assert.Panics(func() { c.koanf.MustTime("xxxx", "2006-01-02") })
-		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.MustTime("time", "2006-01-02"))
+		assert.Panics(func() { c.MustTime("xxxx", "2006-01-02") })
+		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.MustTime("time", "2006-01-02"))
 
 		// // Attempt to parse int=1234 as a Unix timestamp.
-		assert.Panics(func() { c.koanf.MustTime("time", "2006") })
-		assert.Equal(time.Date(1970, 1, 1, 0, 20, 34, 0, time.UTC), c.koanf.MustTime("parent1.id", "").UTC())
+		assert.Panics(func() { c.MustTime("time", "2006") })
+		assert.Equal(time.Date(1970, 1, 1, 0, 20, 34, 0, time.UTC), c.MustTime("parent1.id", "").UTC())
 	}
 }
 
 func TestDelete(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
-		c.koanf.Delete("parent2.child2.grandchild2")
-		assert.Equal(false, c.koanf.Exists("parent2.child2.grandchild2.on"))
-		assert.Equal(false, c.koanf.Exists("parent2.child2.grandchild2.ids.5"))
-		assert.Equal(true, c.koanf.Exists("parent2.child2.name"))
+		c.Delete("parent2.child2.grandchild2")
+		assert.Equal(false, c.Exists("parent2.child2.grandchild2.on"))
+		assert.Equal(false, c.Exists("parent2.child2.grandchild2.ids.5"))
+		assert.Equal(true, c.Exists("parent2.child2.name"))
 
-		c.koanf.Delete("")
-		assert.Equal(false, c.koanf.Exists("duration"))
-		assert.Equal(false, c.koanf.Exists("empty"))
+		c.Delete("")
+		assert.Equal(false, c.Exists("duration"))
+		assert.Equal(false, c.Exists("empty"))
 	}
 }
